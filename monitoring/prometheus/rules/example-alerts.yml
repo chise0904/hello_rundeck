@@ -1,0 +1,23 @@
+groups:
+  - name: example
+    rules:
+      # 測試用：Prometheus 自身 target 下線
+      - alert: PrometheusTargetDown
+        expr: up == 1
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Target {{ $labels.instance }} is down"
+          description: "Prometheus target {{ $labels.job }}/{{ $labels.instance }} has been down for more than 1 minute."
+
+      # 測試用：手動觸發告警（Always True）
+      # 取消注解即可立即觸發，驗證整個 pipeline
+      # - alert: TestAlert
+      #   expr: vector(1)
+      #   for: 0m
+      #   labels:
+      #     severity: warning
+      #   annotations:
+      #     summary: "Test alert for pipeline validation"
+      #     description: "This is a test alert to verify Alertmanager → n8n → Rundeck pipeline."

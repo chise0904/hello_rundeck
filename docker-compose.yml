@@ -33,6 +33,7 @@ services:
       - ./rundeck-config/resources.yaml:/home/rundeck/server/projects/demo/etc/resources.yaml
     networks:
       - rundeck-net
+      - pipeline-net
     depends_on:
       - target-node
       - node-2
@@ -99,6 +100,8 @@ services:
 networks:
   rundeck-net:
     driver: bridge
+  pipeline-net:
+    external: true
 
 volumes:
   rundeck_data:
