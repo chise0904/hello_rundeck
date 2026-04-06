@@ -1,0 +1,20 @@
+---
+- name: "Handle Alertmanager Resolved Alert"
+  hosts: localhost
+  gather_facts: false
+  vars:
+    alert_name: "{{ ansible_eda.event.payload.commonLabels.alertname | default('unknown') }}"
+    severity: "{{ ansible_eda.event.payload.commonLabels.severity | default('unknown') }}"
+    alerts: "{{ ansible_eda.event.payload.alerts | default([]) }}"
+
+  tasks:
+    - name: "Log resolved alert"
+      debug:
+        msg: |
+          =============================
+          [EDA] Alert RESOLVED
+          AlertName: {{ alert_name }}
+          Severity : {{ severity }}
+          Alerts   : {{ alerts | length }} item(s) resolved
+          =============================
+          {{ ansible_eda.event.payload | to_nice_json }}

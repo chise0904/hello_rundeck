@@ -1,0 +1,54 @@
+---
+- name: "Handle Alertmanager Firing Alert"
+  hosts: localhost
+  gather_facts: false
+  vars:
+    alert_status: "{{ ansible_eda.event.payload.status }}"
+    alert_name: "{{ ansible_eda.event.payload.commonLabels.alertname | default('unknown') }}"
+    severity: "{{ ansible_eda.event.payload.commonLabels.severity | default('unknown') }}"
+    alerts: "{{ ansible_eda.event.payload.alerts | default([]) }}"
+    rundeck_url: "{{ lookup('env', 'RUNDECK_URL') | default('http://rundeck:4440') }}"
+    rundeck_api_token: "{{ lookup('env', 'RUNDECK_API_TOKEN') | default('') }}"
+    rundeck_job_id: "{{ lookup('env', 'RUNDECK_JOB_ID') | default('') }}"
+
+  tasks:
+    - name: "Log received alert"
+      debug:
+        msg: |
+          =============================
+          [EDA] Alert Received
+          Status   : {{ alert_status }}
+          AlertName: {{ alert_name }}
+          Severity : {{ severity }}
+          Alerts   : {{ alerts | length }} item(s)
+          =============================
+          {{ ansible_eda.event.payload | to_nice_json }}
+
+    # Critical alert → 自動觸發 Rundeck Job（需設定環境變數）
+    - name: "Trigger Rundeck job for critical alert"
+      uri:
+        url: "{{ rundeck_url }}/api/41/job/{{ rundeck_job_id }}/run"
+        method: POST
+        headers:
+          X-Rundeck-Auth-Token: "{{ rundeck_api_token }}"
+          Content-Type: "application/json"
+          Accept: "application/json"
+        body_format: json
+        body:
+          argString: "-alertname '{{ alert_name }}' -severity '{{ severity }}'"
+        status_code: [200, 201]
+        validate_certs: false
+      when:
+        - severity == "critical"
+        - rundeck_api_token != ""
+        - rundeck_job_id != ""
+      register: rundeck_result
+      ignore_errors: true
+
+    - name: "Log Rundeck trigger result"
+      debug:
+        msg: "Rundeck job triggered: {{ rundeck_result.json | default('skipped') }}"
+      when:
+        - severity == "critical"
+        - rundeck_api_token != ""
+        - rundeck_job_id != ""

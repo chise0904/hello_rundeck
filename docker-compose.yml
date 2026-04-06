@@ -31,6 +31,8 @@ services:
       - ./rundeck-config/acl:/home/rundeck/etc
       - ./rundeck-config/realm.properties:/home/rundeck/server/config/realm.properties
       - ./rundeck-config/resources.yaml:/home/rundeck/server/projects/demo/etc/resources.yaml
+      # Git SCM Import：將本機 git repo 掛入容器，讓插件從此路徑拉取 job 定義
+      - .:/home/rundeck/scm-repo:ro
     networks:
       - rundeck-net
       - pipeline-net

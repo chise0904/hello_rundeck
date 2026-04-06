@@ -1,0 +1,85 @@
+- name: alert-remediation
+  id: alert-remediation-job-001
+  uuid: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+  description: "接收 Alertmanager / EDA 告警並執行對應修復動作"
+  loglevel: INFO
+  executionEnabled: true
+  scheduleEnabled: true
+  project: demo
+
+  # ── 選項（由 Alertmanager / n8n / EDA 傳入） ──────────────────────────
+  options:
+    - name: alertname
+      label: "Alert Name"
+      description: "告警名稱，例如 PrometheusTargetDown"
+      required: false
+      value: "unknown"
+
+    - name: severity
+      label: "Severity"
+      description: "告警嚴重程度：critical / warning / info"
+      required: false
+      value: "warning"
+      values:
+        - critical
+        - warning
+        - info
+      valuesListDelimiter: ","
+
+    - name: instance
+      label: "Instance"
+      description: "觸發告警的目標 instance，例如 localhost:9090"
+      required: false
+      value: ""
+
+  # ── 節點過濾（在哪些節點執行） ────────────────────────────────────────
+  nodefilters:
+    dispatch:
+      threadcount: 1
+      keepgoing: false
+      excludePrecedence: true
+      rankOrder: ascending
+    filter: "tags: linux"
+
+  # ── 工作流程 ──────────────────────────────────────────────────────────
+  sequence:
+    keepgoing: false
+    strategy: node-first
+    commands:
+
+      # 步驟 1：印出告警資訊
+      - exec: |
+          echo "======================================="
+          echo "[Rundeck] Alert Received"
+          echo "  AlertName : @option.alertname@"
+          echo "  Severity  : @option.severity@"
+          echo "  Instance  : @option.instance@"
+          echo "======================================="
+
+      # 步驟 2：依 severity 分流（inline script）
+      - script: |
+          #!/bin/bash
+          set -e
+
+          SEVERITY="@option.severity@"
+          ALERTNAME="@option.alertname@"
+
+          case "$SEVERITY" in
+            critical)
+              echo "[CRITICAL] 執行緊急修復程序..."
+              # 範例：重啟服務（替換成實際指令）
+              # systemctl restart my-service
+              echo "修復動作已執行：$ALERTNAME"
+              ;;
+            warning)
+              echo "[WARNING] 記錄警告，觀察中..."
+              ;;
+            *)
+              echo "[INFO] 收到告警：$ALERTNAME，無需自動處理"
+              ;;
+          esac
+        fileExtension: .sh
+        interpreterArgsQuoted: false
+
+      # 步驟 3：回報結果（可替換成呼叫外部 API / 發送通知）
+      - exec: echo "[Done] Job 執行完畢，告警：@option.alertname@"

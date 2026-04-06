@@ -1,0 +1,22 @@
+---
+- name: "Handle Alertmanager Alerts via Webhook"
+  hosts: localhost
+  sources:
+    - ansible.eda.webhook:
+        host: 0.0.0.0
+        port: 5000
+
+  rules:
+    # Alertmanager 告警觸發
+    - name: "Handle firing alert"
+      condition: event.payload.status == "firing"
+      action:
+        run_playbook:
+          name: playbooks/handle_alert.yml
+
+    # Alertmanager 告警恢復
+    - name: "Handle resolved alert"
+      condition: event.payload.status == "resolved"
+      action:
+        run_playbook:
+          name: playbooks/handle_resolved_alert.yml

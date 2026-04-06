@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  ansible-rulebook:
+    build:
+      context: ./eda
+      dockerfile: Dockerfile
+    container_name: ansible-rulebook
+    hostname: ansible-rulebook
+    ports:
+      - "5001:5000"
+    environment:
+      - ANSIBLE_STDOUT_CALLBACK=yaml
+      - RUNDECK_URL=http://rundeck:4440
+      # 可選：設定後會在 critical alert 時自動觸發 Rundeck Job
+      - RUNDECK_API_TOKEN=${RUNDECK_API_TOKEN:-}
+      - RUNDECK_JOB_ID=${RUNDECK_JOB_ID:-}
+    volumes:
+      - ./eda:/eda:ro
+    working_dir: /eda
+    command: >
+      ansible-rulebook
+      --rulebook rulebook.yml
+      --inventory inventory.yml
+      --verbose
+    networks:
+      - eda-net
+      - pipeline-net
+    restart: unless-stopped
+
+networks:
+  eda-net:
+    driver: bridge
+  pipeline-net:
+    external: true
