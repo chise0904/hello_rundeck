@@ -1,0 +1,23 @@
+node-1:
+  nodename: node-1
+  hostname: target-node
+  port: 22
+  username: rundeck
+  description: "Target node 1"
+  tags: linux,test
+
+node-2:
+  nodename: node-2
+  hostname: node-2
+  port: 22
+  username: rundeck
+  description: "Target node 2"
+  tags: linux,test
+
+node-3:
+  nodename: node-3
+  hostname: node-3
+  port: 22
+  username: rundeck
+  description: "Target node 3"
+  tags: linux,test

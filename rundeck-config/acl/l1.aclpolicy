@@ -1,0 +1,28 @@
+# L1: 唯讀，可看 project/job/node，不能執行
+description: L1 read-only project access
+context:
+  project: '.*'
+for:
+  resource:
+    - allow: read
+  job:
+    - allow: read
+  node:
+    - allow: read
+  adhoc:
+    - deny: '*'
+by:
+  group: rundeck-l1
+
+---
+
+description: L1 read-only system access
+context:
+  application: 'rundeck'
+for:
+  resource:
+    - allow: read
+  project:
+    - allow: read
+by:
+  group: rundeck-l1

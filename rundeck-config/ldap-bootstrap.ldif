@@ -1,0 +1,105 @@
+# OU: users
+dn: ou=users,dc=example,dc=com
+objectClass: organizationalUnit
+ou: users
+
+# OU: groups
+dn: ou=groups,dc=example,dc=com
+objectClass: organizationalUnit
+ou: groups
+
+# User: rdadmin (Rundeck admin via LDAP)
+dn: uid=rdadmin,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: rdadmin
+sn: Admin
+givenName: Rundeck
+cn: Rundeck Admin
+displayName: Rundeck Admin
+uidNumber: 10003
+gidNumber: 10003
+userPassword: rdadmin123
+loginShell: /bin/bash
+homeDirectory: /home/rdadmin
+mail: rdadmin@example.com
+
+# User: l1user (read-only)
+dn: uid=l1user,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: l1user
+sn: User
+givenName: L1
+cn: L1 User
+displayName: L1 User
+uidNumber: 10011
+gidNumber: 10011
+userPassword: l1pass
+loginShell: /bin/bash
+homeDirectory: /home/l1user
+mail: l1user@example.com
+
+# User: l2user (can run jobs)
+dn: uid=l2user,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: l2user
+sn: User
+givenName: L2
+cn: L2 User
+displayName: L2 User
+uidNumber: 10012
+gidNumber: 10012
+userPassword: l2pass
+loginShell: /bin/bash
+homeDirectory: /home/l2user
+mail: l2user@example.com
+
+# User: l3user (can manage jobs)
+dn: uid=l3user,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: l3user
+sn: User
+givenName: L3
+cn: L3 User
+displayName: L3 User
+uidNumber: 10013
+gidNumber: 10013
+userPassword: l3pass
+loginShell: /bin/bash
+homeDirectory: /home/l3user
+mail: l3user@example.com
+
+# Group: rundeck-admin
+dn: cn=rundeck-admin,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: rundeck-admin
+description: Rundeck Administrators
+member: uid=rdadmin,ou=users,dc=example,dc=com
+
+# Group: rundeck-l1 (read-only)
+dn: cn=rundeck-l1,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: rundeck-l1
+description: Rundeck L1 read-only users
+member: uid=l1user,ou=users,dc=example,dc=com
+
+# Group: rundeck-l2 (run jobs)
+dn: cn=rundeck-l2,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: rundeck-l2
+description: Rundeck L2 users can run jobs
+member: uid=l2user,ou=users,dc=example,dc=com
+
+# Group: rundeck-l3 (manage jobs)
+dn: cn=rundeck-l3,ou=groups,dc=example,dc=com
+objectClass: groupOfNames
+cn: rundeck-l3
+description: Rundeck L3 users can manage jobs
+member: uid=l3user,ou=users,dc=example,dc=com

@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  rundeck:
+    image: rundeck/rundeck:5.0.0
+    container_name: rundeck
+    ports:
+      - "4440:4440"
+    environment:
+      RUNDECK_GRAILS_URL: http://localhost:4440
+      RUNDECK_SERVER_ADDRESS: 0.0.0.0
+      RUNDECK_ADMIN_PASSWORD: admin123
+      # LDAP 模組順序：先 LDAP(sufficient)，失敗再 fallback PropertyFile(required)
+      RUNDECK_JAAS_MODULES_0: JettyCachingLdapLoginModule
+      RUNDECK_JAAS_MODULES_1: PropertyFileLoginModule
+      RUNDECK_JAAS_LDAP_FLAG: sufficient
+      RUNDECK_JAAS_LDAP_PROVIDERURL: "ldap://openldap:389"
+      RUNDECK_JAAS_LDAP_BINDDN: "cn=admin,dc=example,dc=com"
+      RUNDECK_JAAS_LDAP_BINDPASSWORD: "admin123"
+      RUNDECK_JAAS_LDAP_USERBASEDN: "ou=users,dc=example,dc=com"
+      RUNDECK_JAAS_LDAP_USERRDNATTRIBUTE: "uid"
+      RUNDECK_JAAS_LDAP_USERIDATTRIBUTE: "uid"
+      RUNDECK_JAAS_LDAP_USEROBJECTCLASS: "inetOrgPerson"
+      RUNDECK_JAAS_LDAP_ROLEBASEDN: "ou=groups,dc=example,dc=com"
+      RUNDECK_JAAS_LDAP_ROLENAMEATTRIBUTE: "cn"
+      RUNDECK_JAAS_LDAP_ROLEMEMBERATTRIBUTE: "member"
+      RUNDECK_JAAS_LDAP_ROLEOBJECTCLASS: "groupOfNames"
+
+    volumes:
+      - rundeck_data:/home/rundeck/server/data
+      - ./rundeck-config/acl:/home/rundeck/etc
+      - ./rundeck-config/realm.properties:/home/rundeck/server/config/realm.properties
+      - ./rundeck-config/resources.yaml:/home/rundeck/server/projects/demo/etc/resources.yaml
+    networks:
+      - rundeck-net
+    depends_on:
+      - target-node
+      - node-2
+      - node-3
+      - openldap
+
+  openldap:
+    image: osixia/openldap:1.5.0
+    container_name: openldap
+    hostname: openldap
+    command: --copy-service --loglevel debug
+    environment:
+      LDAP_ORGANISATION: "Example Org"
+      LDAP_DOMAIN: "example.com"
+      LDAP_ADMIN_PASSWORD: "admin123"
+      LDAP_CONFIG_PASSWORD: "config123"
+      LDAP_REMOVE_CONFIG_AFTER_SETUP: "false"
+    volumes:
+      - openldap_data:/var/lib/ldap
+      - openldap_config:/etc/ldap/slapd.d
+      - ./rundeck-config/ldap-bootstrap.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/bootstrap.ldif
+    ports:
+      - "389:389"
+    networks:
+      - rundeck-net
+
+  phpldapadmin:
+    image: osixia/phpldapadmin:0.9.0
+    container_name: phpldapadmin
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: openldap
+      PHPLDAPADMIN_HTTPS: "false"
+    ports:
+      - "8080:80"
+    networks:
+      - rundeck-net
+    depends_on:
+      - openldap
+
+  target-node:
+    build:
+      context: ./target-node
+    container_name: target-node
+    hostname: target-node
+    networks:
+      - rundeck-net
+
+  node-2:
+    build:
+      context: ./target-node
+    container_name: node-2
+    hostname: node-2
+    networks:
+      - rundeck-net
+
+  node-3:
+    build:
+      context: ./target-node
+    container_name: node-3
+    hostname: node-3
+    networks:
+      - rundeck-net
+
+networks:
+  rundeck-net:
+    driver: bridge
+
+volumes:
+  rundeck_data:
+  openldap_data:
+  openldap_config:

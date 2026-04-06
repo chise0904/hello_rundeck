@@ -1,0 +1,31 @@
+description: Admin project-level ACL
+context:
+  project: '.*'
+for:
+  resource:
+    - allow: '*'
+  adhoc:
+    - allow: '*'
+  job:
+    - allow: '*'
+  node:
+    - allow: '*'
+by:
+  group: rundeck-admin
+
+---
+
+description: Admin system-level ACL
+context:
+  application: 'rundeck'
+for:
+  resource:
+    - allow: '*'
+  project:
+    - allow: '*'
+  project_acl:
+    - allow: '*'
+  storage:
+    - allow: '*'
+by:
+  group: rundeck-admin

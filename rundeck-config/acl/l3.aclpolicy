@@ -1,0 +1,28 @@
+# L3: 可管理 job（新增/修改/刪除/執行），不能管理系統設定
+description: L3 job management project access
+context:
+  project: '.*'
+for:
+  resource:
+    - allow: [read, create]
+  job:
+    - allow: [read, create, update, delete, run, kill]
+  node:
+    - allow: [read, run]
+  adhoc:
+    - allow: [read, run, kill]
+by:
+  group: rundeck-l3
+
+---
+
+description: L3 system access
+context:
+  application: 'rundeck'
+for:
+  resource:
+    - allow: read
+  project:
+    - allow: [read, configure]
+by:
+  group: rundeck-l3

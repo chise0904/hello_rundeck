@@ -1,0 +1,28 @@
+# L2: 可執行 job，不能新增/修改/刪除
+description: L2 run-only project access
+context:
+  project: '.*'
+for:
+  resource:
+    - allow: read
+  job:
+    - allow: [read, run, kill]
+  node:
+    - allow: [read, run]
+  adhoc:
+    - deny: '*'
+by:
+  group: rundeck-l2
+
+---
+
+description: L2 system access
+context:
+  application: 'rundeck'
+for:
+  resource:
+    - allow: read
+  project:
+    - allow: read
+by:
+  group: rundeck-l2
