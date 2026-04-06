@@ -47,6 +47,8 @@ Alertmanager 同時送出 webhook 給 **n8n**（workflow 自動化）與 **ansib
 ├── docker-compose.eda.yml          # Ansible EDA (ansible-rulebook)
 ├── start-all.sh                    # 一鍵啟動
 ├── stop-all.sh                     # 一鍵停止
+├── rundeck-jobs/
+│   └── alert-remediation.yaml      # Rundeck Job 定義（透過 Git SCM 自動匯入）
 ├── monitoring/
 │   ├── prometheus/
 │   │   ├── prometheus.yml          # Prometheus 設定
@@ -111,31 +113,39 @@ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 ---
 
-## 設定 Rundeck Webhook
+## 設定 Rundeck Job（Git SCM Import）
 
-### 1. 建立 Job
+Job 定義統一存放在 `rundeck-jobs/` 目錄，透過 GitHub 自動匯入 Rundeck，不需手動建立。
+
+### 1. 設定 Git SCM Import
 
 1. 登入 `http://localhost:4440`（admin / admin123）
-2. 進入 **demo** 專案 → **Jobs** → **New Job**
-3. 填入以下資訊：
-   - Job Name：`alert-remediation`
-   - 在 **Workflow** 分頁加入一個 **Command** 步驟，例如：
-     ```bash
-     echo "Alert received: ${option.alertname} severity=${option.severity}"
-     ```
-4. （選填）在 **Options** 分頁新增兩個 Option：
-   - `alertname`（String，不必填）
-   - `severity`（String，不必填）
-5. 儲存 Job
+2. 進入 **demo** 專案 → 右上角齒輪 → **Project Settings** → **SCM** → **Import** → 選 **git**
+3. 填入設定：
 
-### 2. 建立 Webhook
+| 欄位 | 值 |
+|------|----|
+| Git URL | `https://github.com/<帳號>/<repo>.git` |
+| Branch | `main` |
+| File Path Template | `rundeck-jobs/${job.group}${job.name}.yaml` |
+| Format | `yaml` |
+
+4. 私有 repo 請在 **Password** 欄位填入 GitHub Personal Access Token
+5. 點選 **Setup** → **Import All**，`rundeck-jobs/` 下的所有 YAML 自動匯入
+
+### 2. 後續更新
+
+每次 push 新的 job YAML 到 GitHub 後，於 SCM 頁面點 **Fetch** 即可拉取最新版本。
+或在 SCM 設定中開啟 **Automatic fetch** 自動定期同步。
+
+### 3. 建立 Webhook
 
 1. 左側選單點選 **Webhooks**
 2. 點選 **Add Webhook**
 3. 填入設定：
    - Name：`alertmanager-trigger`
    - **Plugin**：選擇 `Run Job`
-   - **Job**：選擇剛建立的 `alert-remediation`
+   - **Job**：選擇 `alert-remediation`
 4. 儲存後，複製頁面上方的 **Webhook URL**，格式如下：
    ```
    http://localhost:4440/api/45/webhook/<TOKEN>
